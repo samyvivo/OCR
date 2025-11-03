@@ -65,11 +65,18 @@ Upload an image, and the model will automatically detect and extract text.
 
 ⚙️ GPU Compatibility
 ```bash
-| GPU Type    | Supported `attn_implementation` | Note                           |
-| ----------- | ------------------------------- | ------------------------------ |
-| A100        | ✅ `"flash_attention_2"`         | Best performance               |
-| T4          | ⚠️ `"eager"` or `"sdpa"`        | FlashAttention 2 not supported |
-| GTX 1660 Ti | ⚠️ `"eager"` only               | Older architecture             |
+| GPU                        | Architecture             | FlashAttention 2 Support | Native BF16 Support           | Recommended `torch_dtype`           | Recommended `_attn_implementation` | Relative Speed ⚡ | Notes                                                       |
+| -------------------------- | ------------------------ | ------------------------ | ----------------------------- | ----------------------------------- | ---------------------------------- | ---------------- | ----------------------------------------------------------- |
+| **H100**                   | **Hopper (SM 90)**       | ✅ **Yes (best)**         | ✅ **Yes (native)**            | `torch.bfloat16`                    | `"flash_attention_2"`              | ⚡⚡⚡⚡             | Fastest GPU for FA2 — supports FP8/BF16, highest efficiency |
+| **A100**                   | **Ampere (SM 80)**       | ✅ **Yes**                | ✅ **Yes (native)**            | `torch.bfloat16`                    | `"flash_attention_2"`              | ⚡⚡⚡              | Excellent performance; ideal for FA2 inference/training     |
+| **RTX 4090 / 4080 / 4070** | **Ada Lovelace (SM 89)** | ✅ **Yes**                | ⚠️ Limited (driver-dependent) | `torch.float16` or `torch.bfloat16` | `"flash_attention_2"`              | ⚡⚡⚡              | BF16 not always stable; FA2 works perfectly                 |
+| **RTX 3090 / 3080 / 3070** | **Ampere (SM 86)**       | ✅ **Yes**                | ⚠️ Partial (no native BF16)   | `torch.float16`                     | `"flash_attention_2"`              | ⚡⚡               | Great speed, less stable in mixed precision                 |
+| **A10 / L40 / L4**         | **Ampere / Ada**         | ✅ **Yes**                | ✅                             | `torch.bfloat16`                    | `"flash_attention_2"`              | ⚡⚡               | Datacenter GPUs similar to A100 in FA2 support              |
+| **T4**                     | **Turing (SM 75)**       | ❌ **No**                 | ❌                             | `torch.float16`                     | `"sdpa"`                           | ⚡                | Solid FP16 inference, but no FA2 kernels                    |
+| **RTX 2080 / 2070 / 2060** | **Turing (SM 75)**       | ❌ **No**                 | ❌                             | `torch.float16`                     | `"sdpa"`                           | ⚡                | Same as T4 — FA2 unsupported                                |
+| **GTX 1660 Ti / 1650**     | **Turing (SM 75)**       | ❌ **No**                 | ❌                             | `torch.float16`                     | `"sdpa"`                           | ⚙️               | Consumer GPU, limited memory, good with SDPA                |
+| **Older (GTX 10xx)**       | **Pascal (SM 61)**       | ❌ **No**                 | ❌                             | `torch.float32`                     | `"eager"`                          | 🐢               | Only eager attention works reliably                         |
+
 ```
 
 The app automatically detects GPU capability and adjusts configuration.
